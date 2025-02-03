@@ -1,6 +1,6 @@
 import{Auction} from "../models/auctionSchema.js"
 import{User} from "../models/userSchema.js"
-import {ErrorHandler} from "../middlewares/error.js"
+import ErrorHandler, { errorMiddleware } from "../middlewares/error.js";
 import {catchAsyncErrors} from "../middlewares/catchAsyncErrors.js"
 import {v2 as cloudinary} from "cloudinary";
 
@@ -48,7 +48,50 @@ export const addNewAuctionItem=catchAsyncErrors(async(req ,res ,next)=>{
         endTime: {$gt :Date.now},
     });
 
-    if(alreadyOneAuctionActive){
-        return next(new ErrorHandler("User already Have one Auction",400))
+    if(alreadyOneAuctionActive.length>0){
+        return next(new ErrorHandler("User already Have one Auction",400));
+    }
+
+    try {
+        
+        const cloudinaryResponse = await cloudinary.uploader.upload(
+            image.tempFilePath,
+            {
+              folder: "MERN_AUCTION_PLATFORM_USERS",
+            }
+          );
+          if (!cloudinaryResponse || cloudinaryResponse.error) {
+            console.error(
+              "Cloudinary error:",
+              cloudinaryResponse.error || "Unknown cloudinary error."
+            );
+            return next(
+              new ErrorHandler("Failed to upload auction image to cloudinary.", 500)
+            );
+          }
+          const auctionItem=await Auction.create({
+            title,
+        desc,
+        category,
+        condition,
+        startingBid,
+        startTime,
+        endTime,
+        image:{
+            public_id:cloudinaryResponse.public_id,            
+            url:cloudinaryResponse.secure_url,            
+
+        },
+        createdBy:req.user._id,
+          });
+          return res.status(200).json({
+            success:true,
+            message:`Auction item created and will be listed on Auction page at${startTime}`,
+            auctionItem,
+          })
+    } catch (error) {
+        return next(new ErrorHandler(error.message || "Failed to create Auction",500))
     }
 })
+
+export default addNewAuctionItem;
