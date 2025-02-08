@@ -31,15 +31,17 @@ const auctionSchema= new mongoose.Schema({
         ref:"User",
         required:true
     },
-    bids:{
-        userId:{
-            type:mongoose.Schema.Types.ObjectId,
-            ref:"Bid"
+    bids: [
+        {
+          userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Bid",
+          },
+          userName: String,
+          profileImage: String,
+          amount: Number,
         },
-        userName:String,
-        profileImage:String,
-        amount:Number,
-    }
+      ]
     ,
     highestBider:{
         type:mongoose.Schema.Types.ObjectId,
