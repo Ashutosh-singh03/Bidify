@@ -5,12 +5,13 @@ import { addNewAuctionItem
     ,removeFromAuction
     ,republishItem} from "../controllers/auctionItemController.js";
 
-import {isAuthenticated, isAuthorized} from "../middlewares/auth.js"
+import {isAuthenticated, isAuthorized} from "../middlewares/auth.js";
+import {trackCommissionStatus} from "../middlewares/trackCommissionStatus.js";
 import express from "express"
 
 const router=express.Router();
 
-router.post("/create",isAuthenticated,isAuthorized("Auctioneer"),addNewAuctionItem);
+router.post("/create",isAuthenticated,isAuthorized("Auctioneer"),trackCommissionStatus,addNewAuctionItem);
 
 router.get("/allitems",getAllItems);
 router.get("/myItem",isAuthenticated,isAuthorized("Auctioneer"),getMyAuctionItems);
